@@ -11,6 +11,7 @@ module.exports = {
     Api:{
         base:'http://rap.taobao.org/mockjs/9013/',//主入口
         creations:'manlist?',//主页视频列表地址
-        comment:'detail/comment?'//评论信息地址
+        comment:'detail/comment?',//评论信息地址
+        sbumitComment:'detail/submitComment?'//提交评论地址
     }
 }
