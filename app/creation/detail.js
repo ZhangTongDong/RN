@@ -18,6 +18,8 @@ import {
 
  var Video = require('react-native-video').default//视频组件
 
+ var Button = require('react-native-button').default//按钮组件
+
 var width = Dimensions.get('window').width;//获取屏幕宽度
 
 var Request = require('../common/rquest');//封装ajax的模块
@@ -59,11 +61,12 @@ var Detail = React.createClass({
             dataOver:false,//判断是否还有更多数据
 
             //表单相关状态
-            modalVisible:false
+            modalVisible:false,//模态框是否显示
+            text:''//评论内容
         }
     },
 
-    componentDidMount(){
+    componentDidMount(){//组件安装完毕
         this._fetchData()
     },
 
@@ -72,10 +75,10 @@ var Detail = React.createClass({
     },
 
     _onLoadStart(){//当视频加载的瞬间的jiantin
-        console.log('开始加载视频')
+
     },
     _onLoad(data){//视频加载不断的监听
-        console.log(data)
+
     },
     _onProgress(times){//每个250毫秒调用一次 并把当前播放的时间点作为参数
 
@@ -94,31 +97,28 @@ var Detail = React.createClass({
             progress:1,
             end:true
         })
-        console.log('播放结束')
     },
     _onError(e){//视频出错事件
-        console.log(e)
+
     },
-    _stop(){
-        console.log('暂停测试')
+    _stop(){//暂停视频
         this.setState({
             paused:true
         })
     },
-    _start(){
-        console.log('开始')
+    _start(){//继续播放视频
         this.setState({
             paused:false
         })
     },
-    _replay(){
+    _replay(){//重新播放视频
         this.refs.videoPlayer.seek(0)
         this.setState({
             end:false
         })
     },
 
-    _fetchData(){
+    _fetchData(){//ajax获取评论数据
         if(this.state.dataOver){
             return
         }
@@ -142,9 +142,8 @@ var Detail = React.createClass({
                 }
             })
     },
-    _fetchMoreData(){
-        console.log(commentList.itmes.length)
-        console.log(commentList.total)
+
+    _fetchMoreData(){//获取更多的评论数据
         if(commentList.itmes.length >= commentList.total && this.state.isLodingTail){//判断数据是否加载完
             this.setState({
                 dataOver:true
@@ -153,7 +152,8 @@ var Detail = React.createClass({
         }
         this._fetchData()
     },
-    _renderFooter(){
+
+    _renderFooter(){//评论列表的页脚
         if(this.state.dataOver){
             return (
                 <Text style={{padding:5,color:'#666',alignSelf:'center'}}>
@@ -168,15 +168,52 @@ var Detail = React.createClass({
             )
         }
     },
-    _modalVisible(){
+    _modalVisible(){//显示模态框
         this.setState({
             modalVisible:true
         })
     },
 
-    _renderHeader(){
+    _clossModal(){//隐藏模态框
+        this.setState({
+            modalVisible:false,
+            text:''
+        })
+    },
+
+    _submit(){//提交评论
+        var data= {
+            _id:this.state.data._id,
+            name:'abc',
+            content:this.state.text
+        }
+        Request.post(config.Api.base+config.Api.sbumitComment,data)
+            .then((data) => {
+                if(data.success){
+                    console.log(data)
+                    var newItem = [{
+                        content:this.state.text,
+                        name:'测试',
+                        shtumb:'http://pic32.photophoto.cn/20140827/0017029348033562_b.jpg'
+                    }]
+
+                    var itmes = commentList.itmes.slice()
+                    itmes = newItem.concat(itmes)
+                    commentList.itmes = itmes
+
+                    console.log(commentList.itmes)
+                    this.setState({
+                        dataSource:this.state.dataSource.cloneWithRows(commentList.itmes)
+                    },() => {
+                        this._clossModal()
+                        console.log(this.state.dataSource)
+                    })
+                }
+            })
+    },
+
+    _renderHeader(){//评论列表的头部
         var data = this.state.data
-        console.log(data)
         return (
             <View>
                 <View style={styles.owner}>
@@ -196,8 +233,7 @@ var Detail = React.createClass({
         )
     },
 
-    _renderRow(row){
-        console.log(row)
+    _renderRow(row){//评论列表
         return (
             <View style={styles.commentRow}>
                 <Image style={styles.userImage} source={{uri:row.shtumb}}>
@@ -211,6 +247,7 @@ var Detail = React.createClass({
             </View>
         )
     },
+
 
     render(){
         return(
@@ -297,6 +334,29 @@ var Detail = React.createClass({
                     visible={this.state.modalVisible}
                     onRequestClose={() => {this.setState({modalVisible:false})}}
                 >
+                    <View style={styles.modalContainer}>
+                        <Text style={styles.closs} onPress={this._clossModal}>&#xe608;</Text>
+                        <View style={styles.comentContent}>
+                            <TextInput
+                                style={{flex:1,color:'#999',fontSize:16}}
+                                textAlignVertical ="top"
+                                underlineColorAndroid='transparent'
+                                multiline={true}
+                                placeholder="请输入评论内容"
+                                placeholderTextColor="#ccc"
+                                onChangeText={(text) => this.setState({text})}
+                                value={this.state.text}
+                            />
+                        </View>
+
+                        <Button
+                            style={styles.commentSubmit}
+                            onPress={this._submit}
+                        >
+                            评论
+                        </Button>
+
+                    </View>
 
                 </Modal>
 
@@ -441,6 +501,33 @@ const styles = StyleSheet.create({
         fontSize:12,
         paddingLeft:5,
         color:'#999'
+    },
+    modalContainer:{
+        flex:1,
+        backgroundColor:'#F5FCFF',
+        padding:10
+    },
+    closs:{
+        fontFamily:'iconfont',
+        color:'#ee735c',
+        fontSize:38,
+        alignSelf:'center'
+    },
+    comentContent:{
+        marginTop:10,
+        borderWidth:1,
+        borderColor:'#ccc',
+        height:100,
+        borderRadius:4,
+        paddingLeft:1,
+        paddingRight:1
+    },
+    commentSubmit:{
+        marginTop:10,
+        padding:8,
+        color:'#FFF',
+        borderRadius:4,
+        backgroundColor:'#ee735c'
     }
 
 })
