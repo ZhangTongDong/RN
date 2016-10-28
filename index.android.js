@@ -11,7 +11,8 @@ import {
   Text,
   Image,
   Navigator,
-  View
+  View,
+  AsyncStorage//获取本地数据
 } from 'react-native';
 
 import TabNavigator from 'react-native-tab-navigator';//底部导航插件
@@ -27,21 +28,43 @@ import TabNavigator from 'react-native-tab-navigator';//底部导航插件
 var List = require('./app/creation');//创意页面
 var Edit = require('./app/edit');//编辑页面
 var Account = require('./app/account');//账号页面
+var Login = require('./app/common/login');//登录页面
 
-export default class reactNative extends Component {
+var reactNative = React.createClass( {
 
-  constructor(){
-    super();
-    this.state={
-      selectedTab:'creation',
-    }
-  }
+    getInitialState(){
+        return {
+            islogin:false,
+            selectedTab:'creation'
+        }
+    },
 
+    componentDidMount(){
+        this._islogin()
+    },
+
+    _islogin(){
+        var _this = this
+        AsyncStorage.getItem('user')
+            .then((data) => {
+                if(data){
+                    _this.setState({
+                        islogin:true
+                    })
+                }
+            })
+    },
+
+    _updateLogin(){
+        this.setState({
+            islogin:true
+        })
+    },
   render() {
-    const routes = [
-      {title: 'First Scene', index: 0},
-      {title: 'Second Scene', index: 1},
-    ];
+
+    if(!this.state.islogin){
+      return <Login login={this._updateLogin}/>
+    }
     return (
         <TabNavigator tabBarStyle={{ backgroundColor:'#FFF' }}>
           <TabNavigator.Item
@@ -83,6 +106,6 @@ export default class reactNative extends Component {
         </TabNavigator>
     );
   }
-}
+})
 
 AppRegistry.registerComponent('reactNative', () => reactNative);
