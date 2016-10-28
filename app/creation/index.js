@@ -83,7 +83,8 @@ var Creaction = React.createClass({
            return {
                isRefreshing:false,//下拉刷新，初始为false
                isLodingTail:false,//用来判断是否在加载中
-               dataSource: ds.cloneWithRows([])//列表初始数据
+               dataSource: ds.cloneWithRows([]),//列表初始数据
+               showLogin:true//是否需要登录
            }
     },
 

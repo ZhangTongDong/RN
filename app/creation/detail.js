@@ -62,7 +62,8 @@ var Detail = React.createClass({
 
             //表单相关状态
             modalVisible:false,//模态框是否显示
-            text:''//评论内容
+            text:'',//评论内容
+            ongoing:false//评论是否正在提交中
         }
     },
 
@@ -182,6 +183,12 @@ var Detail = React.createClass({
     },
 
     _submit(){//提交评论
+        if(this.state.ongoing && this.state.text !== ''){
+           return
+        }
+        this.setState({
+            ongoing:true
+        })
         var data= {
             _id:this.state.data._id,
             name:'abc',
@@ -193,7 +200,7 @@ var Detail = React.createClass({
                     console.log(data)
                     var newItem = [{
                         content:this.state.text,
-                        name:'测试',
+                        name:'测试账号',
                         shtumb:'http://pic32.photophoto.cn/20140827/0017029348033562_b.jpg'
                     }]
 
@@ -201,9 +208,9 @@ var Detail = React.createClass({
                     itmes = newItem.concat(itmes)
                     commentList.itmes = itmes
 
-                    console.log(commentList.itmes)
                     this.setState({
-                        dataSource:this.state.dataSource.cloneWithRows(commentList.itmes)
+                        dataSource:this.state.dataSource.cloneWithRows(commentList.itmes),
+                        ongoing:false
                     },() => {
                         this._clossModal()
                         console.log(this.state.dataSource)
@@ -329,7 +336,7 @@ var Detail = React.createClass({
                 </ListView>
 
                 <Modal
-                    animationType={"slide"}
+                    animationType={"fade"}
                     transparent={false}
                     visible={this.state.modalVisible}
                     onRequestClose={() => {this.setState({modalVisible:false})}}
@@ -338,6 +345,7 @@ var Detail = React.createClass({
                         <Text style={styles.closs} onPress={this._clossModal}>&#xe608;</Text>
                         <View style={styles.comentContent}>
                             <TextInput
+                                autoFocus={true}
                                 style={{flex:1,color:'#999',fontSize:16}}
                                 textAlignVertical ="top"
                                 underlineColorAndroid='transparent'
@@ -349,15 +357,15 @@ var Detail = React.createClass({
                             />
                         </View>
 
-                        <Button
-                            style={styles.commentSubmit}
-                            onPress={this._submit}
-                        >
-                            评论
-                        </Button>
+
+                        {
+                            this.state.ongoing
+                            ? <View style={{flexDirection:'row',justifyContent:'center',marginTop:10}}><ActivityIndicator/><Text>评论中...</Text></View>
+                            : <Button style={styles.commentSubmit} onPress={this._submit}>评论</Button>
+                        }
+
 
                     </View>
-
                 </Modal>
 
             </View>
